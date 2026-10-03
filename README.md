@@ -1,10 +1,22 @@
 # Model Arena
 
+**See it live in action at:** https://saumya13.github.io/model-arena/ (Your API key never leaves your browser!)
+
+
+
+<img width="1421" height="535" alt="Screenshot 2026-10-03 at 11 49 29 PM" src="https://github.com/user-attachments/assets/9926c7f6-2db9-4fa4-b840-c8512d4bdf3b" />
+
 ⚔️ The Great Battle of LLMs — pit AI models against each other and let the latency, cost, and tokens settle the score.
 
 Run one prompt against up to four [OpenRouter](https://openrouter.ai) models at once. Watch their answers stream in side by side, compare latency, token usage, and cost for each, and track those numbers across repeated runs with built-in trend charts. Everything runs client-side in your browser — bring your own OpenRouter API key, no backend involved.
 
-## Demo
+## Battle of the LLMs
+<img width="1418" height="732" alt="Screenshot 2026-10-03 at 10 50 14 PM" src="https://github.com/user-attachments/assets/3f208a57-bb73-4128-ad1d-9d5bc8251c3a" />
+
+<img width="1411" height="501" alt="Screenshot 2026-10-04 at 12 01 23 AM" src="https://github.com/user-attachments/assets/88a82233-c4fb-4929-b932-dbe5b1d8264f" />
+
+
+
 
 ## Tech Stack
 
