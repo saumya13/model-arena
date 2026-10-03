@@ -32,14 +32,15 @@ export function PromptInput({
           ? "Enter a prompt to run."
           : "Ready to run.";
 
-  // Faint gray made the reason the button is disabled easy to miss — tone
-  // the hint by what it's telling the user (blocked vs. ready vs. running),
-  // and call it out further if they hover the button while it's blocked.
+  // Faint gray made the reason the button is disabled easy to miss — a
+  // pill-style badge makes the hint stand out structurally (background +
+  // weight) rather than leaning on red, which would read as an error even
+  // though "add a key" / "select a model" are just setup steps, not faults.
   const hintTone = isRunning
-    ? "text-signal"
+    ? "bg-signal-tint text-signal"
     : blocked
-      ? "text-critical"
-      : "text-good";
+      ? "bg-raised text-ink"
+      : "bg-good-tint text-good";
 
   return (
     <div className="rounded-md border border-hairline bg-panel p-4">
@@ -56,22 +57,28 @@ export function PromptInput({
 
       <div className="mt-3 flex items-center justify-between gap-3">
         <p
-          className={`text-xs font-medium transition ${hintTone} ${
-            blocked && buttonHovered ? "animate-nudge" : ""
+          className={`inline-flex items-center rounded-sm px-2.5 py-1 text-xs font-normal transition ${hintTone} ${
+            blocked && buttonHovered ? "animate-nudge animate-hint-flash" : ""
           }`}
         >
           {hint}
         </p>
-        <button
-          type="button"
-          onClick={onRun}
-          disabled={!canRun}
+        {/* Disabled buttons don't reliably fire mouse events, so hover is
+            tracked on this wrapper instead. */}
+        <span
+          className="shrink-0"
           onMouseEnter={() => setButtonHovered(true)}
           onMouseLeave={() => setButtonHovered(false)}
-          className="shrink-0 rounded bg-signal px-4 py-2 text-sm font-semibold text-white transition hover:bg-signal-strong disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {isRunning ? "Running…" : "Run comparison"}
-        </button>
+          <button
+            type="button"
+            onClick={onRun}
+            disabled={!canRun}
+            className="rounded bg-signal px-4 py-2 text-sm font-semibold text-white transition hover:bg-signal-strong disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {isRunning ? "Running…" : "Run comparison"}
+          </button>
+        </span>
       </div>
     </div>
   );

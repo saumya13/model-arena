@@ -72,24 +72,21 @@ export function MetricsCharts({ runs }: MetricsChartsProps) {
         on a new prompt to add another point.
       </p>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+      <div className="mt-4 grid gap-4 lg:grid-cols-3">
         <MetricChart
-          title="LATENCY"
+          title="Latency"
+          subtitle="Time to full response"
           data={latencyData}
           series={series}
           formatValue={formatMs}
-          yAxisLabel="ms"
         />
         <MetricChart
-          title="COST"
+          title="Cost"
+          subtitle="Total spend per run"
           data={costData}
           series={series}
           formatValue={formatUsd}
-          yAxisLabel="USD"
         />
-      </div>
-
-      <div className="mt-4">
         <TokensChart
           series={series}
           totalData={totalTokenData}
@@ -98,12 +95,12 @@ export function MetricsCharts({ runs }: MetricsChartsProps) {
         />
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-md border border-hairline bg-panel px-4 py-3">
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
         {series.map((entry) => (
           <div key={entry.id} className="flex items-center gap-1.5">
-            <span className="inline-block h-0.5 w-4" style={{ backgroundColor: entry.color }} />
-            <span className="font-mono text-[0.6875rem] text-ink-soft">
-              {truncateModelName(entry.label, 24)}
+            <span className="inline-block h-0.5 w-3" style={{ backgroundColor: entry.color }} />
+            <span className="text-[0.6875rem]" style={{ color: entry.color }}>
+              {truncateModelName(entry.label.replace(/^[^:]+:\s*/, ""), 24)}
             </span>
           </div>
         ))}

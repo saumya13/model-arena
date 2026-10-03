@@ -49,7 +49,7 @@ export function ComparisonSection() {
   return (
     <section
       id="arena"
-      className="mx-auto max-w-7xl border-t border-hairline px-5 py-10"
+      className="mx-auto max-w-7xl scroll-mt-16 border-t border-hairline px-5 py-10"
     >
       <p className="readout-label-green">ARENA</p>
       <p className="mt-2 max-w-2xl text-ink-soft">
@@ -57,33 +57,33 @@ export function ComparisonSection() {
         side by side.
       </p>
 
-      <div
-        className={`mt-6 grid items-stretch ${
-          pickerCollapsed
-            ? "gap-3 lg:grid-cols-[48px_1fr]"
-            : "gap-6 lg:grid-cols-[minmax(0,320px)_1fr]"
-        }`}
-      >
-        <ModelPicker
-          selected={selectedModels}
-          onToggle={toggleModel}
-          maxModels={MAX_MODELS}
-          collapsed={pickerCollapsed}
-          onToggleCollapsed={() => setPickerCollapsed((c) => !c)}
-          mode={pickerMode}
-          onModeChange={handleModeChange}
+      {/* Expanded: the picker spans both rows beside prompt + history.
+          Collapsed: it shrinks to the prompt's row height and the history
+          spans the full width underneath. */}
+      <div className="mt-6 grid items-stretch gap-6 lg:grid-cols-[minmax(0,320px)_1fr] lg:grid-rows-[auto_1fr]">
+        <div className={pickerCollapsed ? "" : "lg:row-span-2"}>
+          <ModelPicker
+            selected={selectedModels}
+            onToggle={toggleModel}
+            maxModels={MAX_MODELS}
+            collapsed={pickerCollapsed}
+            onToggleCollapsed={() => setPickerCollapsed((c) => !c)}
+            mode={pickerMode}
+            onModeChange={handleModeChange}
+          />
+        </div>
+
+        <PromptInput
+          value={prompt}
+          onChange={setPrompt}
+          onRun={handleRun}
+          canRun={canRun}
+          hasApiKey={!!apiKey}
+          hasModels={selectedModels.length > 0}
+          isRunning={isRunning}
         />
 
-        <div className="flex h-full min-h-0 flex-col gap-4">
-          <PromptInput
-            value={prompt}
-            onChange={setPrompt}
-            onRun={handleRun}
-            canRun={canRun}
-            hasApiKey={!!apiKey}
-            hasModels={selectedModels.length > 0}
-            isRunning={isRunning}
-          />
+        <div className={`min-h-0 ${pickerCollapsed ? "lg:col-span-2" : ""}`}>
           <RunsHistory runs={runs} selectedModels={selectedModels} />
         </div>
       </div>

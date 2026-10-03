@@ -55,6 +55,16 @@
   color-scheme: light;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 body {
   background-color: var(--color-paper);
   color: var(--color-ink);
@@ -148,8 +158,21 @@ body {
   animation: nudge 0.4s ease-in-out;
 }
 
+/* Alternates between two light yellows while the blocked hint is hovered. */
+@keyframes hint-flash {
+  0%, 100% { background-color: #fef9c3; }
+  50% { background-color: #fde68a; }
+}
+
+.animate-hint-flash {
+  animation: nudge 0.4s ease-in-out, hint-flash 0.8s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-nudge {
     animation: none;
+  }
+  .animate-hint-flash {
+    animation: hint-flash 0.8s ease-in-out infinite;
   }
 }

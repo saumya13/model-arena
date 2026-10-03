@@ -1,5 +1,6 @@
 import {
   CartesianGrid,
+  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -9,6 +10,7 @@ import {
 } from "recharts";
 import type { TooltipContentProps } from "recharts";
 import { truncateModelName } from "@/lib/format";
+import { ChartCard } from "./ChartCard";
 
 export interface MetricSeriesMeta {
   id: string;
@@ -23,8 +25,8 @@ interface ChartBodyProps {
   height?: number;
   /** Short unit shown as the rotated Y-axis title, e.g. "ms", "USD", "tokens". */
   yAxisLabel?: string;
-  /** Caption shown top-right of the plot — the x-axis is always "run" across every chart here. */
-  xAxisLabel?: string;
+  /** Per-chart legend; the cards hide it in favour of one shared legend, the modal shows it. */
+  showLegend?: boolean;
 }
 
 /** The bare plot — no card chrome or title, so it can be reused under a custom header (e.g. a metric toggle). */
@@ -34,32 +36,27 @@ export function ChartBody({
   formatValue,
   height = 320,
   yAxisLabel,
-  xAxisLabel = "Run",
+  showLegend = true,
 }: ChartBodyProps) {
   const colorById = new Map(series.map((s) => [s.id, s.color]));
 
   return (
     <div className="relative" style={{ width: "100%", height }}>
-      {/* A bottom-centered axis title competed with the tick labels for the
-          same cramped strip — placing it top-right instead keeps it clear
-          of both the x-axis ticks and the plotted lines. */}
-      <span className="pointer-events-none absolute right-1 top-0 font-mono text-[0.625rem] uppercase tracking-wide text-ink-faint">
-        {xAxisLabel}
-      </span>
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 16, right: 24, bottom: 8, left: 8 }}>
-          <CartesianGrid stroke="var(--color-hairline)" strokeDasharray="4 4" />
+        <LineChart data={data} margin={{ top: 8, right: 24, bottom: 8, left: 8 }}>
+          <CartesianGrid stroke="#d4d4d4" strokeDasharray="5 5" />
           <XAxis
             dataKey="run"
-            tick={{ fontSize: 11, fill: "var(--color-ink-faint)" }}
-            tickLine={{ stroke: "var(--color-ink-soft)" }}
-            axisLine={{ stroke: "var(--color-ink-soft)" }}
+            tick={{ fontSize: 11, fill: "#444" }}
+            tickLine={{ stroke: "#444" }}
+            axisLine={{ stroke: "#444" }}
           />
           <YAxis
-            tick={{ fontSize: 11, fill: "var(--color-ink-faint)" }}
-            tickLine={{ stroke: "var(--color-ink-soft)" }}
-            axisLine={{ stroke: "var(--color-ink-soft)" }}
-            width={64}
+            tick={{ fontSize: 11, fill: "#444" }}
+            tickLine={{ stroke: "#444" }}
+            axisLine={{ stroke: "#444" }}
+            domain={[0, "auto"]}
+            width={72}
             tickFormatter={(v) => formatValue(Number(v))}
             label={
               yAxisLabel
@@ -79,6 +76,20 @@ export function ChartBody({
               <ChartTooltip {...props} formatValue={formatValue} colorById={colorById} />
             )}
           />
+          {showLegend && (
+            <Legend
+              verticalAlign="bottom"
+              align="center"
+              iconType="plainline"
+              iconSize={12}
+              wrapperStyle={{ paddingTop: 12, fontSize: 11 }}
+              formatter={(value, entry) => (
+                <span style={{ color: entry.color }}>
+                  {truncateModelName(String(value).replace(/^[^:]+:\s*/, ""), 16)}
+                </span>
+              )}
+            />
+          )}
           {series.map((s) => (
             <Line
               key={s.id}
@@ -86,13 +97,10 @@ export function ChartBody({
               name={s.label}
               type="monotone"
               stroke={s.color}
-              // The line is a connective guide between points — it should
-              // read as secondary to the dots, which carry the actual values.
-              strokeOpacity={0.45}
               strokeWidth={1.5}
               connectNulls={false}
-              dot={{ r: 5, fill: s.color, strokeWidth: 0, fillOpacity: 1 }}
-              activeDot={{ r: 7, fillOpacity: 1 }}
+              dot={{ r: 4, fill: s.color, strokeWidth: 0, fillOpacity: 1 }}
+              activeDot={{ r: 6, fillOpacity: 1 }}
               isAnimationActive={false}
             />
           ))}
@@ -102,19 +110,19 @@ export function ChartBody({
   );
 }
 
-interface MetricChartProps extends ChartBodyProps {
+interface MetricChartProps extends Omit<ChartBodyProps, "height"> {
   title: string;
+  subtitle: string;
 }
 
-/** A chart card with a plain readout-label title — for the single-metric charts (latency, cost). */
-export function MetricChart({ title, ...bodyProps }: MetricChartProps) {
+/** A chart card for the single-metric charts (latency, cost). */
+export function MetricChart({ title, subtitle, ...bodyProps }: MetricChartProps) {
   return (
-    <div className="rounded-md border border-hairline-strong bg-panel p-4">
-      <p className="readout-label">{title}</p>
-      <div className="mt-3">
-        <ChartBody {...bodyProps} />
-      </div>
-    </div>
+    <ChartCard title={title} subtitle={subtitle}>
+      {(height, expanded) => (
+        <ChartBody {...bodyProps} height={height} showLegend={expanded} />
+      )}
+    </ChartCard>
   );
 }
 

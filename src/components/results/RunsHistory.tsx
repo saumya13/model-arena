@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ComparisonRun, OpenRouterModel } from "@/lib/types";
 import { ResultsGrid, CompletedRunGrid } from "./ResultsGrid";
 import { Chevron } from "@/components/ui/Chevron";
@@ -20,6 +20,12 @@ interface RunsHistoryProps {
 export function RunsHistory({ runs, selectedModels }: RunsHistoryProps) {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const latestRun = runs[runs.length - 1];
+  // A brand-new run always opens expanded, even if the previous latest was collapsed.
+  const [latestCollapsed, setLatestCollapsed] = useState(false);
+  const latestId = latestRun?.id;
+  useEffect(() => {
+    setLatestCollapsed(false);
+  }, [latestId]);
 
   function toggle(id: string) {
     setExpandedIds((prev) => {
@@ -39,12 +45,22 @@ export function RunsHistory({ runs, selectedModels }: RunsHistoryProps) {
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="border-l-2 border-signal pl-3">
-        <p className="mb-2 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setLatestCollapsed((c) => !c)}
+          aria-expanded={!latestCollapsed}
+          className="mb-2 flex items-center gap-2 text-left"
+        >
           <span className="font-mono text-[0.6875rem] font-semibold uppercase tracking-wide text-signal">
             Latest · Run {runs.length}
           </span>
-        </p>
-        <ResultsGrid models={selectedModels} results={latestRun.results} />
+          <Chevron direction={latestCollapsed ? "right" : "down"} className="text-signal" />
+        </button>
+        {latestCollapsed ? (
+          <p className="truncate text-sm text-ink-soft">{latestRun.prompt}</p>
+        ) : (
+          <ResultsGrid models={selectedModels} results={latestRun.results} />
+        )}
       </div>
 
       {olderRuns.map((run, i) => {

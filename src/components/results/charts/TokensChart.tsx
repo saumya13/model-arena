@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ChartCard } from "./ChartCard";
 import { ChartBody, type MetricSeriesMeta } from "./MetricChart";
 import { formatTokens } from "@/lib/format";
 
@@ -21,36 +22,35 @@ export function TokensChart({ series, totalData, inputData, outputData }: Tokens
   const [metric, setMetric] = useState<TokenMetric>("total");
   const data = metric === "total" ? totalData : metric === "input" ? inputData : outputData;
 
+  const toggle = (
+    <div className="flex gap-0.5 rounded-full border border-hairline p-0.5">
+      {TABS.map((tab) => (
+        <button
+          key={tab.id}
+          type="button"
+          onClick={() => setMetric(tab.id)}
+          className={`rounded-full px-2 py-0.5 font-mono text-[0.625rem] uppercase tracking-wide transition ${
+            metric === tab.id ? "bg-signal text-white" : "text-ink-faint hover:text-ink"
+          }`}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  );
+
   return (
-    <div className="rounded-md border border-hairline-strong bg-panel p-4">
-      <div className="flex items-center justify-between">
-        <p className="readout-label">TOKENS</p>
-        <div className="flex gap-0.5 rounded-full border border-hairline p-0.5">
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setMetric(tab.id)}
-              className={`rounded-full px-2.5 py-1 font-mono text-[0.625rem] uppercase tracking-wide transition ${
-                metric === tab.id
-                  ? "bg-signal text-white"
-                  : "text-ink-faint hover:text-ink"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="mt-3">
+    <ChartCard title="Tokens" subtitle="Token usage per run" headerExtra={toggle}>
+      {(height, expanded) => (
         <ChartBody
           data={data}
           series={series}
           formatValue={formatTokens}
-          height={340}
+          height={height}
+          showLegend={expanded}
           yAxisLabel="tokens"
         />
-      </div>
-    </div>
+      )}
+    </ChartCard>
   );
 }

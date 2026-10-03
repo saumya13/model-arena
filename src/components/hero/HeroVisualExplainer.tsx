@@ -190,7 +190,7 @@ function NodeReadout({ node, y, boxDelay, countDelay, isInView, instant, isFaste
   return (
     <>
       <div
-        className="absolute -translate-y-full text-center font-mono text-[9px] uppercase tracking-widest text-ink-faint"
+        className="absolute -translate-y-full text-center font-mono text-[11px] font-medium uppercase tracking-widest text-ink-soft"
         style={{ left: boxLeft, top: boxTop - 4, width: BOX_W }}
       >
         {node.id}
@@ -207,8 +207,8 @@ function NodeReadout({ node, y, boxDelay, countDelay, isInView, instant, isFaste
       </motion.div>
 
       <motion.div
-        className="absolute text-center font-mono text-[9px] text-ink-faint"
-        style={{ left: boxLeft, top: boxTop + BOX_H + 6, width: BOX_W }}
+        className="absolute whitespace-nowrap text-center font-mono text-[11px] font-medium text-ink-soft"
+        style={{ left: boxLeft - 24, top: boxTop + BOX_H + 6, width: BOX_W + 48 }}
         initial={{ opacity: 0 }}
         animate={{ opacity: showCost ? 1 : 0 }}
         transition={{ duration: 0.3 }}

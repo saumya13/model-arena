@@ -1,14 +1,19 @@
 interface ChevronProps {
-  /** "down" = expanded/open, "right" = collapsed/closed. */
-  direction?: "down" | "right";
+  /** "down" = expanded/open, "right" = collapsed/closed, "left" = collapses toward/retracts left. */
+  direction?: "down" | "right" | "left";
   className?: string;
 }
+
+const ROTATION: Record<string, string> = {
+  right: "-rotate-90",
+  left: "rotate-90",
+};
 
 export function Chevron({ direction = "down", className = "" }: ChevronProps) {
   return (
     <svg
       viewBox="0 0 12 12"
-      className={`h-3 w-3 shrink-0 transition-transform ${direction === "right" ? "-rotate-90" : ""} ${className}`}
+      className={`h-3 w-3 shrink-0 transition-transform ${ROTATION[direction] ?? ""} ${className}`}
       aria-hidden
     >
       <path
