@@ -12,6 +12,24 @@ export function SiteFooter() {
           <span>Built with React + OpenRouter</span>
           <span aria-hidden>·</span>
           <a
+            href="https://github.com/saumya13"
+            target="_blank"
+            rel="noreferrer"
+            className="hover:text-ink-soft"
+          >
+            @saumya13
+          </a>
+          <span aria-hidden>·</span>
+          <a
+            href="https://github.com/saumya13/model-arena"
+            target="_blank"
+            rel="noreferrer"
+            className="hover:text-ink-soft"
+          >
+            Source
+          </a>
+          <span aria-hidden>·</span>
+          <a
             href="https://openrouter.ai"
             target="_blank"
             rel="noreferrer"
