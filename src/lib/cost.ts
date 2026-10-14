@@ -4,6 +4,11 @@ import type { ChatUsage, CostBreakdown } from '@/lib/types'
  * OpenRouter's `/models` pricing fields are USD cost per single token
  * (as decimal strings, e.g. "0.0000025"), not per 1K/1M tokens.
  */
+/** For endpoints that report the billed USD amount directly (e.g. /images). */
+export function costFromReported(totalCost: number): CostBreakdown {
+  return { promptCost: 0, completionCost: totalCost, totalCost }
+}
+
 export function computeCost(
   usage: Pick<ChatUsage, 'prompt_tokens' | 'completion_tokens'>,
   pricing: { promptPrice: number; completionPrice: number },

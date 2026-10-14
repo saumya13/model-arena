@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ModelPicker, type PickerMode } from "@/components/model-picker/ModelPicker";
 import { PromptInput } from "@/components/prompt/PromptInput";
 import { RunsHistory } from "@/components/results/RunsHistory";
 import { MetricsCharts } from "@/components/results/MetricsCharts";
 import { useApiKeyStore } from "@/store/useApiKeyStore";
 import { useArenaRuns } from "@/hooks/useArenaRuns";
+import { assignSeriesColors } from "@/lib/palette";
 import type { OpenRouterModel } from "@/lib/types";
 
 const MAX_MODELS = 4;
@@ -42,6 +43,23 @@ export function ComparisonSection() {
       return [...prev, model];
     });
   }
+
+  // One color per model, shared by its result card and its chart series. Run
+  // history fixes the order (a model keeps its color once it has run); models
+  // that are selected but haven't run yet take the next free slots, so their
+  // cards are already colored before the first run.
+  const colorById = useMemo(() => {
+    const ids: string[] = [];
+    runs.forEach((run) =>
+      run.results.forEach((r) => {
+        if (!ids.includes(r.modelId)) ids.push(r.modelId);
+      }),
+    );
+    selectedModels.forEach((m) => {
+      if (!ids.includes(m.id)) ids.push(m.id);
+    });
+    return assignSeriesColors(ids);
+  }, [runs, selectedModels]);
 
   const canRun =
     !!apiKey && prompt.trim().length > 0 && selectedModels.length > 0 && !isRunning;
@@ -84,11 +102,11 @@ export function ComparisonSection() {
         />
 
         <div className={`min-h-0 ${pickerCollapsed ? "lg:col-span-2" : ""}`}>
-          <RunsHistory runs={runs} selectedModels={selectedModels} />
+          <RunsHistory runs={runs} selectedModels={selectedModels} colorById={colorById} />
         </div>
       </div>
 
-      <MetricsCharts runs={runs} />
+      <MetricsCharts runs={runs} colorById={colorById} />
     </section>
   );
 }

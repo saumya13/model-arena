@@ -7,6 +7,7 @@ import { formatUsd } from "@/lib/format";
 interface RunsHistoryProps {
   runs: ComparisonRun[];
   selectedModels: OpenRouterModel[];
+  colorById: Map<string, string>;
 }
 
 // Every run this session stays available to revisit — nothing is discarded,
@@ -17,7 +18,11 @@ interface RunsHistoryProps {
 // entirely); `expandedIds` only tracks which *older* runs the user has
 // manually re-opened — a run not in it renders collapsed, which is also
 // exactly the state a run starts in the moment a newer run supersedes it.
-export function RunsHistory({ runs, selectedModels }: RunsHistoryProps) {
+export function RunsHistory({
+  runs,
+  selectedModels,
+  colorById,
+}: RunsHistoryProps) {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const latestRun = runs[runs.length - 1];
   // A brand-new run always opens expanded, even if the previous latest was collapsed.
@@ -37,31 +42,68 @@ export function RunsHistory({ runs, selectedModels }: RunsHistoryProps) {
   }
 
   if (!latestRun) {
-    return <ResultsGrid models={selectedModels} results={[]} />;
+    return (
+      <ResultsGrid models={selectedModels} results={[]} colorById={colorById} />
+    );
   }
 
-  const olderRuns = runs.slice(0, -1).reverse();
+  // The latest run stays on top only while the picker still matches the models
+  // it ran. Once the selection drifts away from it, the run is tucked into the
+  // history as a row and the new selection is shown as the next run's cards;
+  // re-selecting the exact same models brings it back.
+  const runIds = new Set(latestRun.results.map((r) => r.modelId));
+  const selectionMatchesLatest =
+    selectedModels.length === runIds.size &&
+    selectedModels.every((m) => runIds.has(m.id));
+
+  const olderRuns = (selectionMatchesLatest ? runs.slice(0, -1) : runs)
+    .slice()
+    .reverse();
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
-      <div className="border-l-2 border-signal pl-3">
-        <button
-          type="button"
-          onClick={() => setLatestCollapsed((c) => !c)}
-          aria-expanded={!latestCollapsed}
-          className="mb-2 flex items-center gap-2 text-left"
-        >
-          <span className="font-mono text-[0.6875rem] font-semibold uppercase tracking-wide text-signal">
-            Latest · Run {runs.length}
-          </span>
-          <Chevron direction={latestCollapsed ? "right" : "down"} className="text-signal" />
-        </button>
-        {latestCollapsed ? (
-          <p className="truncate text-sm text-ink-soft">{latestRun.prompt}</p>
-        ) : (
-          <ResultsGrid models={selectedModels} results={latestRun.results} />
-        )}
-      </div>
+      {!selectionMatchesLatest && (
+        <div className="border-l-2 border-signal pl-3">
+          <p className="mb-2 font-mono text-[0.6875rem] font-semibold uppercase tracking-wide text-signal">
+            Next · Run {runs.length + 1}
+          </p>
+          <ResultsGrid
+            models={selectedModels}
+            results={[]}
+            colorById={colorById}
+          />
+        </div>
+      )}
+
+      {selectionMatchesLatest && (
+        <div className="border-l-2 border-signal pl-3">
+          <button
+            type="button"
+            onClick={() => setLatestCollapsed((c) => !c)}
+            aria-expanded={!latestCollapsed}
+            className="mb-2 flex items-center gap-2 text-left"
+          >
+            <span className="font-mono text-[0.6875rem] font-semibold uppercase tracking-wide text-signal">
+              Latest · Run {runs.length}
+            </span>
+            <Chevron
+              direction={latestCollapsed ? "right" : "down"}
+              className="text-signal"
+            />
+          </button>
+          {latestCollapsed ? (
+            <p className="truncate text-sm text-ink-soft">{latestRun.prompt}</p>
+          ) : (
+            // Rendered from the run's own results, not the picker's current
+            // selection — every model in a run has a result from the moment it
+            // starts, so editing the selection afterwards can't alter it.
+            <CompletedRunGrid
+              results={latestRun.results}
+              colorById={colorById}
+            />
+          )}
+        </div>
+      )}
 
       {olderRuns.map((run, i) => {
         const runNumber = olderRuns.length - i;
@@ -96,15 +138,18 @@ export function RunsHistory({ runs, selectedModels }: RunsHistoryProps) {
               </span>
               <span className="flex shrink-0 items-center gap-3">
                 <span className="font-mono text-[0.6875rem] text-neutral-500">
-                  {run.results.length} model{run.results.length === 1 ? "" : "s"} ·{" "}
-                  {formatUsd(totalCost)}
+                  {run.results.length} model
+                  {run.results.length === 1 ? "" : "s"} · {formatUsd(totalCost)}
                 </span>
-                <Chevron direction={isExpanded ? "down" : "right"} className="text-neutral-500" />
+                <Chevron
+                  direction={isExpanded ? "down" : "right"}
+                  className="text-neutral-500"
+                />
               </span>
             </button>
             {isExpanded && (
               <div className="border-t border-hairline p-4">
-                <CompletedRunGrid results={run.results} />
+                <CompletedRunGrid results={run.results} colorById={colorById} />
               </div>
             )}
           </div>

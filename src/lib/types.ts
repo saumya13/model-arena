@@ -13,6 +13,8 @@ export interface ChatUsage {
   prompt_tokens: number
   completion_tokens: number
   total_tokens: number
+  /** Billed USD cost, when the endpoint reports it (always for /images). */
+  cost?: number
 }
 
 export interface ChatImage {

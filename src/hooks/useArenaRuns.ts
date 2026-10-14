@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { streamChatCompletion } from "@/lib/openrouter";
-import { computeCost } from "@/lib/cost";
+import {
+  generateImage,
+  streamChatCompletion,
+  usesImagesEndpoint,
+  type StreamCallbacks,
+} from "@/lib/openrouter";
+import { computeCost, costFromReported } from "@/lib/cost";
 import type { ChatUsage, ComparisonRun, ModelRunResult, OpenRouterModel } from "@/lib/types";
 
 let runCounter = 0;
@@ -74,53 +79,63 @@ export function useArenaRuns(apiKey: string | null) {
         const startedAt = performance.now();
         let usage: ChatUsage | undefined;
 
-        streamChatCompletion(
-          model.id,
-          prompt,
-          apiKey,
-          {
-            onToken: (text) => {
-              patchResult(model.id, (result) => ({
-                ...result,
-                status: "streaming",
-                content: result.content + text,
-              }));
-            },
-            onImage: (url) => {
-              patchResult(model.id, (result) => ({
-                ...result,
-                status: "streaming",
-                images: [...result.images, url],
-              }));
-            },
-            onUsage: (u) => {
-              usage = u;
-            },
-            onError: (error) => {
-              patchResult(model.id, (result) => ({ ...result, status: "error", error }));
-              settle();
-            },
-            onDone: () => {
-              const latencyMs = performance.now() - startedAt;
-              const cost = usage
-                ? computeCost(usage, {
-                    promptPrice: model.promptPrice,
-                    completionPrice: model.completionPrice,
-                  })
-                : undefined;
-              patchResult(model.id, (result) => ({
-                ...result,
-                status: "done",
-                usage,
-                cost,
-                latencyMs,
-              }));
-              settle();
-            },
+        const callbacks: StreamCallbacks = {
+          onToken: (text) => {
+            patchResult(model.id, (result) => ({
+              ...result,
+              status: "streaming",
+              content: result.content + text,
+            }));
           },
-          controller.signal,
-          model.supportsImageOutput,
-        );
+          onImage: (url) => {
+            patchResult(model.id, (result) => ({
+              ...result,
+              status: "streaming",
+              images: [...result.images, url],
+            }));
+          },
+          onUsage: (u) => {
+            usage = u;
+          },
+          onError: (error) => {
+            patchResult(model.id, (result) => ({ ...result, status: "error", error }));
+            settle();
+          },
+          onDone: () => {
+            const latencyMs = performance.now() - startedAt;
+            // /images reports the billed amount itself; its per-token
+            // prices in the catalog are 0, so computeCost would give $0.
+            const cost = !usage
+              ? undefined
+              : usesImagesEndpoint(model) && usage.cost !== undefined
+                ? costFromReported(usage.cost)
+                : computeCost(usage, {
+                  promptPrice: model.promptPrice,
+                  completionPrice: model.completionPrice,
+                });
+            patchResult(model.id, (result) => ({
+              ...result,
+              status: "done",
+              usage,
+              cost,
+              latencyMs,
+            }));
+            settle();
+          },
+        };
+
+        if (usesImagesEndpoint(model)) {
+          generateImage(model.id, prompt, apiKey, callbacks, controller.signal);
+        } else {
+          streamChatCompletion(
+            model.id,
+            prompt,
+            apiKey,
+            callbacks,
+            controller.signal,
+            model.supportsImageOutput,
+          );
+        }
 
         return controller;
       });

@@ -1,17 +1,17 @@
 import { useMemo } from "react";
 import type { ComparisonRun, ModelRunResult } from "@/lib/types";
-import { assignSeriesColors } from "@/lib/palette";
 import { formatMs, formatUsd, truncateModelName } from "@/lib/format";
 import { MetricChart, type MetricSeriesMeta } from "./charts/MetricChart";
 import { TokensChart } from "./charts/TokensChart";
 
 interface MetricsChartsProps {
   runs: ComparisonRun[];
+  colorById: Map<string, string>;
 }
 
 type MetricRow = Record<string, number | string | null>;
 
-export function MetricsCharts({ runs }: MetricsChartsProps) {
+export function MetricsCharts({ runs, colorById }: MetricsChartsProps) {
   const { hasData, series, latencyData, costData, totalTokenData, inputTokenData, outputTokenData } =
     useMemo(() => {
       // Fixed, append-only order: a model keeps the same color for the rest
@@ -25,7 +25,6 @@ export function MetricsCharts({ runs }: MetricsChartsProps) {
         });
       });
 
-      const colorById = assignSeriesColors(idsInOrder);
       const series: MetricSeriesMeta[] = idsInOrder.map((id) => ({
         id,
         label: nameById.get(id) ?? id,
@@ -60,7 +59,7 @@ export function MetricsCharts({ runs }: MetricsChartsProps) {
         inputTokenData,
         outputTokenData,
       };
-    }, [runs]);
+    }, [runs, colorById]);
 
   if (!hasData) return null;
 
@@ -98,7 +97,11 @@ export function MetricsCharts({ runs }: MetricsChartsProps) {
       <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
         {series.map((entry) => (
           <div key={entry.id} className="flex items-center gap-1.5">
-            <span className="inline-block h-0.5 w-3" style={{ backgroundColor: entry.color }} />
+            <span
+              className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
+              style={{ backgroundColor: entry.color }}
+              aria-hidden
+            />
             <span className="text-[0.6875rem]" style={{ color: entry.color }}>
               {truncateModelName(entry.label.replace(/^[^:]+:\s*/, ""), 24)}
             </span>

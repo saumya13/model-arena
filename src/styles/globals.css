@@ -176,3 +176,76 @@ body {
     animation: hint-flash 0.8s ease-in-out infinite;
   }
 }
+
+/* Dancing robot shown while a model is generating. Every part rotates or
+   shifts around a pivot given in the SVG's own viewBox units, so the
+   transform-box has to be the viewBox rather than each element's own box. */
+.robot-sway,
+.robot-arm-l,
+.robot-arm-r,
+.robot-leg-l,
+.robot-leg-r,
+.robot-antenna {
+  transform-box: view-box;
+  animation-duration: 0.9s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+.robot-sway {
+  transform-origin: 24px 52px;
+  animation-name: robot-sway;
+}
+.robot-arm-l {
+  transform-origin: 14px 32px;
+  animation-name: robot-arm-l;
+}
+.robot-arm-r {
+  transform-origin: 34px 32px;
+  animation-name: robot-arm-r;
+  animation-delay: -0.45s;
+}
+.robot-leg-l {
+  animation-name: robot-leg;
+}
+.robot-leg-r {
+  animation-name: robot-leg;
+  animation-delay: -0.45s;
+}
+.robot-antenna {
+  transform-origin: 24px 9px;
+  animation-name: robot-antenna;
+  animation-duration: 0.45s;
+}
+
+@keyframes robot-sway {
+  0%, 100% { transform: translateY(0) rotate(-5deg); }
+  50% { transform: translateY(-2px) rotate(5deg); }
+}
+@keyframes robot-arm-l {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(65deg); }
+}
+@keyframes robot-arm-r {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-65deg); }
+}
+@keyframes robot-leg {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2.5px); }
+}
+@keyframes robot-antenna {
+  0%, 100% { transform: rotate(-14deg); }
+  50% { transform: rotate(14deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .robot-sway,
+  .robot-arm-l,
+  .robot-arm-r,
+  .robot-leg-l,
+  .robot-leg-r,
+  .robot-antenna {
+    animation: none;
+  }
+}
